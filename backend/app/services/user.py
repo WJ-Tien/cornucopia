@@ -11,9 +11,8 @@ SECRET_KEY = getenv("CORNU_SECKEY")
 ALGORITHM = "HS256"
 
 def get_username(username: str) -> dict | None:
-    # TODO
+    # TODO: check if the username exists in the database
     """Placeholder function to get user by username."""
-    # This should be replaced with actual database logic
     return {"user_id": username} if username else None
 
 def hash_password(password: str) -> str:
