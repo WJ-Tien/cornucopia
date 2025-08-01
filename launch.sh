@@ -12,5 +12,6 @@ source $(poetry env info --path)/bin/activate
 # source $(poetry env info --path)/bin/activate   # (poetry env activate)
 # deactivate
 # python == python3.12
+# /Users/wjtien/Library/Caches/pypoetry/virtualenvs/cornucopia-twjIKgOK-py3.12/bin/python --> modify env in the vscode !!!
 
 # poetry add module_name
