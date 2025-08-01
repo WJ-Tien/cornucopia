@@ -35,7 +35,7 @@ def validate_access_token(token: str) -> dict:
     """Decode and validate JWT token, return payload. Raises exception if invalid."""
     return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+def get_current_user(token: str = Depends(oauth2_scheme)) -> dict | None:
     try:
         payload = validate_access_token(token)
         return payload
