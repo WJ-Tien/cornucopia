@@ -1,7 +1,14 @@
 # Configuration settings for the backend
 from os import getenv
 
-# TODO: pydantic-settings for configuration management
-CORNU_DB_URL = getenv("CORNU_DB_URL")
-if not CORNU_DB_URL:
-    raise ValueError("environment variable CORNU_DB_URL shoule be set.")
+class CMSettings:
+    def __init__(self):
+        self.CORNU_DB_URL: str = self._get_required_env("CORNU_DB_URL")
+
+    def _get_required_env(self, var_name: str) -> str:
+        value = getenv(var_name)
+        if value is None:
+            raise ValueError(f"environment variable {var_name} should be set.")
+        return value
+
+settings = CMSettings()

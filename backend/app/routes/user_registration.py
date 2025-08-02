@@ -1,4 +1,4 @@
-from app.core.database import db_manager 
+from app.core.database import db_manager
 from app.schemas.user import UserCreate, UserOut
 from app.services.user import create_user
 from fastapi import FastAPI, Depends, HTTPException

@@ -1,5 +1,5 @@
 from .base_init import Base
-from .config import CORNU_DB_URL
+from .config import settings 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -24,4 +24,4 @@ class DatabaseManager:
     def drop_all_tables(self):
         Base.metadata.drop_all(bind=self.engine)
 
-db_manager = DatabaseManager(CORNU_DB_URL)
+db_manager = DatabaseManager(settings.CORNU_DB_URL)
