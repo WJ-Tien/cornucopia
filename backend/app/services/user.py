@@ -1,9 +1,13 @@
 import jwt
+from app.schemas.user import UserCreate
 from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from os import getenv
 from passlib.context import CryptContext
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError # 用於捕捉資料庫唯一性約束錯誤
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -51,3 +55,29 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> dict | None:
             detail="Invalid access token",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+def create_user(db: Session, user_data: UserCreate):
+    """
+    register a new user in the database. 
+    """
+
+    hashed_pass = hash_password(user_data.password)
+
+    db_user = UserCreate(
+        username=user_data.username,
+        email=user_data.email,
+        hashed_password=hashed_pass
+    )
+
+    # add the user to the database session and ready to commit 
+    db.add(db_user)
+
+    try:
+        db.commit()
+        # refresh the session to get the new user object with ID
+        db.refresh(db_user)
+    except IntegrityError:
+        db.rollback() 
+        raise ValueError("usernmame or email already exists")
+
+    return db_user

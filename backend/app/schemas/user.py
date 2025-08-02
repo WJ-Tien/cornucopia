@@ -7,12 +7,15 @@ class UserBase(BaseModel):
     email: EmailStr
 
 class UserCreate(UserBase):
-    password: str  
+    password: str
 
 class UserLogin(BaseModel):
     username: str
     password: str
 
+# automatically generate the schema from the User model
+# fastapi to sqlalchemy integration
+# API response model
 class UserOut(UserBase):
     id: UUID
     is_active: bool
@@ -20,5 +23,6 @@ class UserOut(UserBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True  # 支援 .from_orm(orm_obj)
+    model_config = {
+        "from_attributes": True
+    }
