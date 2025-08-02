@@ -1,25 +1,27 @@
-# Database connection setup (e.g., SQLAlchemy, asyncpg)
-from os import getenv
+from .base_init import Base
+from .config import CORNU_DB_URL
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_DATABASE_URL = getenv("DATABASE_URL")
+class DatabaseManager:
+    def __init__(self, db_url: str):
+        self.engine = create_engine(db_url)
+        self.db_session = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL
-)
+    def get_db(self):
+        """
+        Dependency to get a database session.
+        """
+        db = self.db_session()
+        try:
+            yield db
+        finally:
+            db.close()
 
-session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    def create_all_tables(self):
+        Base.metadata.create_all(bind=self.engine)
 
-Base = declarative_base()
+    def drop_all_tables(self):
+        Base.metadata.drop_all(bind=self.engine)
 
-def get_db():
-    """
-    Dependency that provides a database session for each request.
-    """
-    db = session_local() 
-    try:
-        yield db 
-    finally:
-        db.close()
+db_manager = DatabaseManager(CORNU_DB_URL)
