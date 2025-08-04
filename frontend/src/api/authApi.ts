@@ -22,11 +22,12 @@ export const loginUser = async (
       username,
       password,
     });
+    console.log(response.data);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data?.detail || '登入時發生未知錯誤');
+      throw new Error(error.response.data?.detail || 'Unknown error');
     }
-    throw new Error('登入時發生網路或客戶端錯誤');
+    throw new Error('Network or client error occurred');
   }
 };
