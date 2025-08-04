@@ -29,9 +29,13 @@ class CartItemService:
             existing_item.updated_at = datetime.now(timezone.utc)
             if request.price_snapshot:
                 existing_item.price_snapshot = request.price_snapshot
-            db.commit()
-            db.refresh(existing_item)
-            return existing_item
+            try:
+                db.commit()
+                db.refresh(existing_item)
+                return existing_item
+            except Exception as e:
+                db.rollback()
+                raise e
         else:
             # Create new cart item
             cart_item = CartItem(
@@ -41,9 +45,13 @@ class CartItemService:
                 price_snapshot=request.price_snapshot
             )
             db.add(cart_item)
-            db.commit()
-            db.refresh(cart_item)
-            return cart_item
+            try:
+                db.commit()
+                db.refresh(cart_item)
+                return cart_item
+            except Exception as e:
+                db.rollback()
+                raise e
     
     @staticmethod
     def update_cart_item(
@@ -70,13 +78,22 @@ class CartItemService:
             
         if request.quantity <= 0:
             # Delete item when quantity is 0 or negative
-            db.delete(cart_item)
+            try:
+                db.delete(cart_item)
+                db.commit()
+                return None
+            except Exception as e:
+                db.rollback()
+                raise e
         else:
             cart_item.quantity = request.quantity
             cart_item.updated_at = datetime.now(timezone.utc)
-            
-        db.commit()
-        return cart_item if request.quantity > 0 else None
+            try:
+                db.commit()
+                return cart_item
+            except Exception as e:
+                db.rollback()
+                raise e
     
     @staticmethod
     def remove_cart_item(
@@ -97,7 +114,11 @@ class CartItemService:
             
         cart_item = query.first()
         if cart_item:
-            db.delete(cart_item)
-            db.commit()
-            return True
+            try:
+                db.delete(cart_item)
+                db.commit()
+                return True
+            except Exception as e:
+                db.rollback()
+                raise e
         return False

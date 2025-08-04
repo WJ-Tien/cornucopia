@@ -26,8 +26,12 @@ class CartService:
                 session_id=session_id if not user_id else None
             )
             db.add(cart)
-            db.commit()
-            db.refresh(cart)
+            try:
+                db.commit()
+                db.refresh(cart)
+            except Exception as e:
+                db.rollback()
+                raise e
             
         return cart
     
@@ -49,9 +53,13 @@ class CartService:
         """clean the cart"""
         cart = CartService.get_cart(db, user_id, session_id)
         if cart:
-            db.query(CartItem).filter(CartItem.cart_id == cart.id).delete()
-            db.commit()
-            return True
+            try:
+                db.query(CartItem).filter(CartItem.cart_id == cart.id).delete()
+                db.commit()
+                return True
+            except Exception as e:
+                db.rollback()
+                raise e
         return False
     
     @staticmethod
@@ -70,9 +78,13 @@ class CartService:
             anonymous_cart.user_id = user_id
             anonymous_cart.session_id = None
             anonymous_cart.updated_at = datetime.now(timezone.utc)
-            db.commit()
-            db.refresh(anonymous_cart)
-            return anonymous_cart
+            try:
+                db.commit()
+                db.refresh(anonymous_cart)
+                return anonymous_cart
+            except Exception as e:
+                db.rollback()
+                raise e
 
         # Both carts exist, merge items into user cart
         for anonymous_item in anonymous_cart.items:
@@ -92,10 +104,14 @@ class CartService:
                 anonymous_item.cart_id = user_cart.id
 
         # Delete anonymous cart
-        db.delete(anonymous_cart)
-        user_cart.updated_at = datetime.now(timezone.utc)
-        db.commit()
-        db.refresh(user_cart)
+        try:
+            db.delete(anonymous_cart)
+            user_cart.updated_at = datetime.now(timezone.utc)
+            db.commit()
+            db.refresh(user_cart)
+        except Exception as e:
+            db.rollback()
+            raise e
         
         return user_cart
     
