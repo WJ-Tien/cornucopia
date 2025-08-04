@@ -7,7 +7,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from os import getenv
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError # 用於捕捉資料庫唯一性約束錯誤
+from sqlalchemy.exc import IntegrityError
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
