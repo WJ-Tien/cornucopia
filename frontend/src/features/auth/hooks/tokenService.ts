@@ -25,6 +25,20 @@ export const getUsername = (): string | null => {
     return localStorage.getItem(USERNAME_KEY);
 };
 
+export const parseJwt = (token: string | null): any => {
+  if (!token) return null;
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch (e) {
+    return null;
+  }
+};
+
+export const isTokenValid = (token: string | null): boolean => {
+  const decodedToken = parseJwt(token);
+  return decodedToken && decodedToken.exp * 1000 > Date.now();
+};
+
 export const clearTokens = (): void => {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);

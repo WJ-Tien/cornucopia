@@ -12,15 +12,15 @@ router = APIRouter()
 def refresh_access_token(refresh_token: str):
     try:
         payload = validate_access_token(refresh_token)
-        user_id = payload.get("user_id")
+        user_id = payload.get("username")
         # short-term access_token
         new_access_token = create_valid_token(
-            data={"user_id": user_id}, 
+            data={"username": user_id}, 
             expires_delta=timedelta(minutes=30)  
         )
         # long-term refresh_token
         new_refresh_token = create_valid_token(
-            data={"user_id": user_id}, 
+            data={"username": user_id}, 
             expires_delta=timedelta(days=7)
         )
         return {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { loginUser } from './authApi';
 import * as tokenService from './tokenService';
+import { loginUser } from './authApi';
 
 export const useAuth = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -8,11 +8,22 @@ export const useAuth = () => {
   const [error, setError] = useState<string>('');
   const [username, setUsername] = useState<string | null>(null);
 
+  const handleLogout = () => {
+    tokenService.clearTokens();
+    setUsername(null);
+    setIsLoggedIn(false);
+    setError('');
+  };
+  
   useEffect(() => {
     const token = tokenService.getAccessToken();
-    if (token) {
+
+    if (token && tokenService.isTokenValid(token)) {
+      const decodedToken = tokenService.parseJwt(token);
       setIsLoggedIn(true);
-      setUsername(tokenService.getUsername());
+      setUsername(decodedToken.username || decodedToken.sub || 'User');
+    } else {
+      handleLogout();
     }
   }, []);
 
@@ -34,12 +45,6 @@ export const useAuth = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleLogout = () => {
-    tokenService.clearTokens();
-    setUsername(null);
-    setIsLoggedIn(false);
   };
 
   return { isLoggedIn, loading, error, username, handleLogin, handleLogout };

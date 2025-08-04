@@ -3,6 +3,7 @@ from ..core.database import Base
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, DateTime
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
 class User(Base):
     __tablename__ = "users"
@@ -15,3 +16,6 @@ class User(Base):
     is_superuser = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+
+    # 1 user 1 cart
+    cart = relationship("Cart", back_populates="user", uselist=False)

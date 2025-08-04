@@ -1,5 +1,5 @@
 from backend.app.core.database import db_manager 
-from backend.app.models import user # noqa
+from backend.app.models import user, cart, cart_item  # noqa
 
 if __name__ == "__main__":
 
