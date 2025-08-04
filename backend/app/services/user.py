@@ -1,16 +1,16 @@
+import bcrypt
 import jwt
 from app.schemas.user import UserCreate
+from app.models.user import User
 from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from os import getenv
-from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError # 用於捕捉資料庫唯一性約束錯誤
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = getenv("CORNU_SECKEY") 
 ALGORITHM = "HS256"
 
@@ -19,13 +19,15 @@ def get_username(username: str) -> dict | None:
     """Placeholder function to get user by username."""
     return {"user_id": username} if username else None
 
-def hash_password(password: str) -> str:
-    """Hash a plain password for storing in the database."""
-    return pwd_context.hash(password)
+def hash_password(password):
+    pwd_bytes = password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(password=pwd_bytes, salt=salt)
+    return hashed_password
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a plain password against the hashed password from the database."""
-    return pwd_context.verify(plain_password, hashed_password)
+def verify_password(plain_password, hashed_password):
+    password_byte_enc = plain_password.encode('utf-8')
+    return bcrypt.checkpw(password=password_byte_enc , hashed_password=hashed_password)
 
 def create_valid_token(data: dict, expires_delta: timedelta = timedelta(hours=1)) -> str:
     """Generate a JWT access token, default expires in 1 hour."""
@@ -61,12 +63,12 @@ def create_user(db: Session, user_data: UserCreate):
     register a new user in the database. 
     """
 
-    hashed_pass = hash_password(user_data.password)
+    hashed_pwd = hash_password(user_data.password)
 
-    db_user = UserCreate(
+    db_user = User(
         username=user_data.username,
         email=user_data.email,
-        hashed_password=hashed_pass
+        hashed_password=hashed_pwd
     )
 
     # add the user to the database session and ready to commit 

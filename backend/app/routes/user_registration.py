@@ -1,10 +1,10 @@
 from app.core.database import db_manager
 from app.schemas.user import UserCreate, UserOut
 from app.services.user import create_user
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-router = FastAPI()
+router = APIRouter()
 
 @router.post("/register", response_model=UserOut, status_code=201)
 def register_new_user(user_data: UserCreate, db: Session = Depends(db_manager.get_db)):
