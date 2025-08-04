@@ -43,6 +43,11 @@ def validate_access_token(token: str) -> dict:
     return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
 def get_current_user(token: str = Depends(oauth2_scheme)) -> dict | None:
+    # In a fastapi route
+    # token: str = Depends(oauth2_scheme) --> extract token from HTTP header
+    # and pass it to this function
+    # Depends(get_current_user) --> use this function to get current user info (payload, dict)
+    # no duplicate code in routes
     try:
         payload = validate_access_token(token)
         return payload

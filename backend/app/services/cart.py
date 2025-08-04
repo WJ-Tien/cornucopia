@@ -1,5 +1,5 @@
 from typing import Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_
 from ..models.cart import Cart
 from ..models.cart_item import CartItem
@@ -9,16 +9,15 @@ class CartService:
     
     @staticmethod
     def get_or_create_cart(db: Session, user_id: Optional[str] = None, session_id: Optional[str] = None) -> Cart:
-
-        # Get or create a cart - one user/session can only have one cart
+        """Get or create a cart - one user/session can only have one cart"""
         cart = None
         
         if user_id:
-            # Logged in user: directly find the unique cart for the user
-            cart = db.query(Cart).filter(Cart.user_id == user_id).first()
+            # Logged in user: directly find the unique cart for the user with items preloaded
+            cart = db.query(Cart).options(joinedload(Cart.items)).filter(Cart.user_id == user_id).first()
         elif session_id:
-            # Anonymous user: find the unique cart for the session
-            cart = db.query(Cart).filter(Cart.session_id == session_id).first()
+            # Anonymous user: find the unique cart for the session with items preloaded
+            cart = db.query(Cart).options(joinedload(Cart.items)).filter(Cart.session_id == session_id).first()
             
         if not cart:
             # Create a new cart
@@ -34,10 +33,11 @@ class CartService:
     
     @staticmethod
     def get_cart(db: Session, user_id: Optional[str] = None, session_id: Optional[str] = None) -> Optional[Cart]:
+        """Get cart for user or session with items preloaded"""
         if user_id:
-            return db.query(Cart).filter(Cart.user_id == user_id).first()
+            return db.query(Cart).options(joinedload(Cart.items)).filter(Cart.user_id == user_id).first()
         elif session_id:
-            return db.query(Cart).filter(Cart.session_id == session_id).first()
+            return db.query(Cart).options(joinedload(Cart.items)).filter(Cart.session_id == session_id).first()
         return None
     
     @staticmethod
@@ -57,9 +57,9 @@ class CartService:
     @staticmethod
     def merge_carts(db: Session, user_id: str, session_id: str) -> Optional[Cart]:
         """Merge carts when user logs in - simplified version"""
-        # Get user cart and anonymous cart
-        user_cart = db.query(Cart).filter(Cart.user_id == user_id).first()
-        anonymous_cart = db.query(Cart).filter(Cart.session_id == session_id).first()
+        # Get user cart and anonymous cart with items preloaded
+        user_cart = db.query(Cart).options(joinedload(Cart.items)).filter(Cart.user_id == user_id).first()
+        anonymous_cart = db.query(Cart).options(joinedload(Cart.items)).filter(Cart.session_id == session_id).first()
         
         if not anonymous_cart:
             # No anonymous cart, return or create user cart
