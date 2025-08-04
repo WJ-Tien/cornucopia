@@ -1,5 +1,5 @@
 import axios from 'axios';
-import settings from '../api_configs/configs';
+import settings from '../../../api_configs/configs';
 
 interface LoginResponse {
   access_token: string;

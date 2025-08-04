@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { loginUser } from '../../api/authApi';
-import * as tokenService from '../../services/tokenService';
+import { loginUser } from './authApi';
+import * as tokenService from './tokenService';
 
 export const useAuth = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
