@@ -81,5 +81,8 @@ def create_user(db: Session, user_data: UserCreate):
     except IntegrityError:
         db.rollback() 
         raise ValueError("usernmame or email already exists")
+    except Exception:
+        db.rollback() 
+        raise 
 
     return db_user
