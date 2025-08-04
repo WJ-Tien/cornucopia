@@ -1,7 +1,7 @@
 import bcrypt
 import jwt
-from app.schemas.user import UserCreate
 from app.models.user import User
+from app.schemas.user import UserCreate
 from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -14,10 +14,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 SECRET_KEY = getenv("CORNU_SECKEY") 
 ALGORITHM = "HS256"
 
-def get_username(username: str) -> dict | None:
-    # TODO: check if the username exists in the database
+def get_username(username: str, db: Session) -> dict | None:
     """Placeholder function to get user by username."""
-    return {"user_id": username} if username else None
+    user: User = db.query(User).filter(User.username == username).first()
+    return user.username if user else None
 
 def hash_password(password):
     pwd_bytes = password.encode('utf-8')
