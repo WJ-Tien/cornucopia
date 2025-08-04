@@ -14,20 +14,21 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 SECRET_KEY = getenv("CORNU_SECKEY") 
 ALGORITHM = "HS256"
 
-def get_username(username: str, db: Session) -> dict | None:
+def get_user_info(username: str, db: Session) -> dict | None:
     """Placeholder function to get user by username."""
     user: User = db.query(User).filter(User.username == username).first()
-    return user.username if user else None
+    return user if user else None
 
-def hash_password(password):
+def hash_password(password: str) -> bytes:
     pwd_bytes = password.encode('utf-8')
     salt = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw(password=pwd_bytes, salt=salt)
     return hashed_password
 
-def verify_password(plain_password, hashed_password):
-    password_byte_enc = plain_password.encode('utf-8')
-    return bcrypt.checkpw(password=password_byte_enc , hashed_password=hashed_password)
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    plain_password_bytes = plain_password.encode('utf-8')
+    hashed_password_bytes = hashed_password.encode('utf-8')
+    return bcrypt.checkpw(password=plain_password_bytes , hashed_password=hashed_password_bytes)
 
 def create_valid_token(data: dict, expires_delta: timedelta = timedelta(hours=1)) -> str:
     """Generate a JWT access token, default expires in 1 hour."""
@@ -63,8 +64,7 @@ def create_user(db: Session, user_data: UserCreate):
     register a new user in the database. 
     """
 
-    hashed_pwd = hash_password(user_data.password)
-
+    hashed_pwd = hash_password(user_data.password).decode('utf-8')  # bcrypt returns bytes, decode to str for storage
     db_user = User(
         username=user_data.username,
         email=user_data.email,

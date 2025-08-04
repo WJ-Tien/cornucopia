@@ -1,6 +1,5 @@
-// src/core/config.ts
+// common parameters for API requests
 
-// 從 Vite 的特殊環境變數中讀取 API 的基礎 URL
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 if (!API_BASE_URL) {

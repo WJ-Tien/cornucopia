@@ -1,5 +1,5 @@
 import axios from 'axios';
-import settings from '../api_configs/configs'; // ✅ 從設定檔匯入
+import settings from '../api_configs/configs';
 
 interface LoginResponse {
   access_token: string;
@@ -7,7 +7,6 @@ interface LoginResponse {
   token_type: 'bearer';
 }
 
-// 使用匯入的設定來建立 Axios 實例
 const apiClient = axios.create({
   baseURL: settings.apiBaseUrl, 
   timeout: 10000,
@@ -22,7 +21,6 @@ export const loginUser = async (
       username,
       password,
     });
-    console.log(response.data);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
