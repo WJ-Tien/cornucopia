@@ -66,7 +66,7 @@ class CSRFProtection:
             key=self.cookie_name,
             value=token,
             max_age=self.token_expiry,
-            httponly=False,  # Must be accessible to JavaScript
+            httponly=True,   # More secure since frontend doesn't read it
             secure=False,    # Set to True in production with HTTPS
             samesite="strict"
         )
