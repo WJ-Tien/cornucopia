@@ -1,10 +1,16 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from uuid import UUID
+from ..utils.security import InputSanitizer
 
 class UserBase(BaseModel):
     username: str
     email: EmailStr
+    
+    @field_validator('username')
+    @classmethod
+    def validate_username(cls, v):
+        return InputSanitizer.sanitize_username(v)
 
 class UserCreate(UserBase):
     password: str

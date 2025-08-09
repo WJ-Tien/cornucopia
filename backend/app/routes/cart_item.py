@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 from typing import Optional
 from ..core.database import db_manager
+from ..core.security import csrf_protect
+from ..utils.origin_check import validate_request_origin
 from ..services.cart import CartService
 from ..services.cart_item import CartItemService
 from ..services.user import get_current_user as _get_current_user
@@ -21,6 +23,17 @@ def get_current_user_optional() -> Optional[dict]:
         return _get_current_user()
     except HTTPException:
         return None
+
+def set_secure_cookie(response: Response, key: str, value: str):
+    """Set secure cookie with improved security settings"""
+    response.set_cookie(
+        key=key,
+        value=value,
+        max_age=60*60*24*30,  # 30 days
+        httponly=True,        # Prevent JavaScript access
+        secure=False,         # Set to True in production with HTTPS
+        samesite="strict"     # Strict CSRF protection
+    )
 
 def get_cart_identifier(request: Request, current_user: Optional[dict] = None):
     """Get cart identifier information"""
@@ -42,18 +55,18 @@ async def add_to_cart(
     db: Session = Depends(get_db),
     current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
-    """Add product to cart"""
+    """Add product to cart - requires CSRF protection and origin validation"""
+    # Validate request origin to prevent cross-site attacks
+    validate_request_origin(request)
+    
+    # CSRF protection for state-changing operation
+    csrf_protect.validate_csrf(request)
+    
     cart_info = get_cart_identifier(request, current_user)
     
     # If anonymous user and no session_id, set cookie
     if not current_user and not request.cookies.get("cart_session_id"):
-        response.set_cookie(
-            key="cart_session_id", 
-            value=cart_info["session_id"],
-            max_age=60*60*24*30,  # 30 days
-            httponly=True,
-            samesite="lax"
-        )
+        set_secure_cookie(response, "cart_session_id", cart_info["session_id"])
     
     cart = CartService.get_or_create_cart(
         db, 
@@ -77,7 +90,12 @@ async def update_cart_item(
     db: Session = Depends(get_db),
     current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
-    """Update cart item quantity"""
+    """Update cart item quantity - requires CSRF protection and origin validation"""
+    # Validate request origin to prevent cross-site attacks
+    validate_request_origin(request)
+    
+    # CSRF protection for state-changing operation
+    csrf_protect.validate_csrf(request)
     cart_info = get_cart_identifier(request, current_user)
     
     cart_item = CartItemService.update_cart_item(
@@ -112,7 +130,12 @@ async def remove_cart_item(
     db: Session = Depends(get_db),
     current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
-    """Remove item from cart"""
+    """Remove item from cart - requires CSRF protection and origin validation"""
+    # Validate request origin to prevent cross-site attacks
+    validate_request_origin(request)
+    
+    # CSRF protection for state-changing operation
+    csrf_protect.validate_csrf(request)
     cart_info = get_cart_identifier(request, current_user)
     
     success = CartItemService.remove_cart_item(

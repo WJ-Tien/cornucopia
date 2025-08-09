@@ -1,28 +1,26 @@
-const ACCESS_TOKEN_KEY = 'cornucopia_access_token';
-const REFRESH_TOKEN_KEY = 'cornucopia_refresh_token';
-const USERNAME_KEY = 'cornucopia_username';
+// Store both access token and username in memory (more secure against XSS)
+let accessToken: string | null = null;
+let username: string | null = null;
 
-export const setTokens = (accessToken: string, refreshToken: string): void => {
-  localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-  if (refreshToken) {
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-  }
+export const setTokens = (accessTokenValue: string): void => {
+  // Access token stored in memory
+  accessToken = accessTokenValue;
+  
+  // Refresh token is now handled via HttpOnly cookies by the server
+  // No need to store it in localStorage anymore
 };
 
 export const getAccessToken = (): string | null => {
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
+  return accessToken;
 };
 
-export const getRefreshToken = (): string | null => {
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
-};
-
-export const setUsername = (username: string): void => {
-    localStorage.setItem(USERNAME_KEY, username);
+export const setUsername = (usernameValue: string): void => {
+  // Store username in memory instead of localStorage to prevent XSS attacks
+  username = usernameValue;
 };
 
 export const getUsername = (): string | null => {
-    return localStorage.getItem(USERNAME_KEY);
+  return username;
 };
 
 export const parseJwt = (token: string | null): any => {
@@ -40,7 +38,11 @@ export const isTokenValid = (token: string | null): boolean => {
 };
 
 export const clearTokens = (): void => {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
-  localStorage.removeItem(USERNAME_KEY);
+  // Clear access token from memory
+  accessToken = null;
+  
+  // Clear username from memory
+  username = null;
+  
+  // Note: Refresh token in HttpOnly cookie will be cleared by server logout endpoint
 };
